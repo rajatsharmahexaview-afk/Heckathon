@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
-import type { User, Gift, Notification, Currency } from "@/types/gift";
-import { DEMO_USERS, DEMO_GIFTS, DEMO_NOTIFICATIONS } from "@/data/mockData";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import type { User, Gift, Notification, Currency, Grandchild } from "@/types/gift";
+import { DEMO_USERS, DEMO_GIFTS, DEMO_NOTIFICATIONS, DEMO_GRANDCHILDREN } from "@/data/mockData";
 
 interface AppContextType {
   currentUser: User | null;
@@ -16,6 +16,8 @@ interface AppContextType {
   addNotification: (notification: Notification) => void;
   markNotificationRead: (notificationId: string) => void;
   unreadCount: number;
+  grandchildren: Grandchild[];
+  addGrandchild: (gc: Grandchild) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -31,6 +33,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [gifts, setGifts] = useState<Gift[]>(DEMO_GIFTS);
   const [notifications, setNotifications] = useState<Notification[]>(DEMO_NOTIFICATIONS);
   const [currency, setCurrency] = useState<Currency>("USD");
+  const [grandchildren, setGrandchildren] = useState<Grandchild[]>(() => {
+    const saved = localStorage.getItem("giftforge_grandchildren");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return DEMO_GRANDCHILDREN;
+      }
+    }
+    return DEMO_GRANDCHILDREN;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("giftforge_grandchildren", JSON.stringify(grandchildren));
+  }, [grandchildren]);
 
   const login = useCallback((userId: string) => {
     const user = DEMO_USERS.find((u) => u.id === userId);
@@ -70,6 +87,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const unreadCount = userNotifications.filter((n) => !n.is_read).length;
 
+  const addGrandchild = useCallback((gc: Grandchild) => {
+    setGrandchildren((prev) => [...prev, gc]);
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -86,6 +107,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addNotification,
         markNotificationRead,
         unreadCount,
+        grandchildren,
+        addGrandchild,
       }}
     >
       {children}

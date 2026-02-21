@@ -33,3 +33,12 @@ async def update_gift_status(gift_id: str, next_status: GiftStatus, db: AsyncSes
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/{gift_id}", status_code=204)
+async def delete_gift(gift_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        await GiftService.delete_gift(db, gift_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
