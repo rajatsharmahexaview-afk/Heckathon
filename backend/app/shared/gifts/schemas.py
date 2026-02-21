@@ -45,6 +45,17 @@ class MediaType(str, Enum):
     audio = "audio"
     video = "video"
 
+class MediaMessageSchema(BaseModel):
+    id: uuid.UUID
+    gift_id: uuid.UUID
+    uploader_id: uuid.UUID
+    type: MediaType
+    file_path: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
 # User schemas
 class UserBase(BaseModel):
     name: str
@@ -94,6 +105,7 @@ class GiftSchema(GiftBase):
     grandparent_id: uuid.UUID
     status: GiftStatus
     milestones: List[MilestoneSchema]
+    media_messages: List[MediaMessageSchema] = []
 
     class Config:
         from_attributes = True

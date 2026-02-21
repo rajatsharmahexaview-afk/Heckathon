@@ -47,6 +47,15 @@ export interface Milestone {
   status: "Pending" | "Submitted" | "Approved" | "Rejected";
 }
 
+export interface MediaMessage {
+  id: string;
+  gift_id: string;
+  uploader_id: string;
+  type: "text" | "photo" | "audio" | "video";
+  file_path: string;
+  created_at: string;
+}
+
 export interface Gift {
   id: string;
   grandparent_id: string;
@@ -60,6 +69,7 @@ export interface Gift {
   rule_type: RuleType;
   fallback_ngo_id?: string;
   milestones: Milestone[];
+  media_messages?: MediaMessage[];
 }
 
 export interface Notification {

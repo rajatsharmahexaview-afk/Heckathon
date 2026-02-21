@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Check, Gift as GiftIcon, User, Settings, Bar
 import type { RuleType, RiskProfile, Currency } from "@/types/gift";
 import { useGifts } from "@/hooks/useGifts";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 const STEPS = [
   { label: "Grandchild", icon: <User size={20} /> },
@@ -35,6 +36,7 @@ const GiftCreation: React.FC = () => {
   const [currency, setCurrency] = useState<Currency>("USD");
   const [ngoId, setNgoId] = useState(DEMO_NGOS[0].id);
   const [message, setMessage] = useState("");
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
 
   const grandchildren = allGrandchildren.filter((gc) => gc.linkedGrandparentId === currentUser?.id);
   const selectedChildObj = grandchildren.find((gc) => gc.id === selectedChild);
@@ -65,7 +67,26 @@ const GiftCreation: React.FC = () => {
         ]
       };
 
-      await createGift(payload);
+      const createdGift = await createGift(payload);
+
+      if (mediaFile && currentUser) {
+        toast.loading("Uploading media...");
+        const fileType = mediaFile.type.startsWith("image/") ? "photo" :
+          mediaFile.type.startsWith("video/") ? "video" :
+            mediaFile.type.startsWith("audio/") ? "audio" : "text";
+
+        const formData = new FormData();
+        formData.append("gift_id", createdGift.id);
+        formData.append("uploader_id", currentUser.id);
+        formData.append("type", fileType);
+        formData.append("file", mediaFile);
+
+        await api.post("/media/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+        toast.dismiss();
+      }
+
       toast.success("Gift created successfully!");
       navigate("/grandparent");
     } catch (error) {
@@ -267,7 +288,23 @@ const GiftCreation: React.FC = () => {
               rows={5}
               className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-base resize-none"
             />
-            <p className="text-sm text-muted-foreground">You can also add photos, audio, or video later.</p>
+
+            <div className="mt-4 pt-4 border-t border-border">
+              <label className="text-base font-semibold block mb-2">Attach Media File (optional)</label>
+              <input
+                type="file"
+                accept="image/*, audio/*, video/*"
+                onChange={(e) => setMediaFile(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-foreground
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-primary/10 file:text-primary
+                  hover:file:bg-primary/20
+                "
+              />
+              {mediaFile && <p className="text-sm mt-2 text-success">Selected: {mediaFile.name}</p>}
+            </div>
           </div>
         )}
 
@@ -295,6 +332,12 @@ const GiftCreation: React.FC = () => {
                 <div className="py-2">
                   <span className="text-muted-foreground block mb-1">Message</span>
                   <p className="italic bg-primary/5 p-3 rounded-lg">"{message}"</p>
+                </div>
+              )}
+              {mediaFile && (
+                <div className="py-2 border-t border-border mt-2">
+                  <span className="text-muted-foreground block mb-1">Attached Media</span>
+                  <p className="font-bold">{mediaFile.name}</p>
                 </div>
               )}
             </div>

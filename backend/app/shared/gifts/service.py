@@ -62,8 +62,8 @@ class GiftService:
         await db.commit()
         
         from sqlalchemy.orm import selectinload
-        # Re-fetch with eagerly loaded milestones to satisfy Pydantic serialization
-        refresh_query = select(Gift).where(Gift.id == new_gift.id).options(selectinload(Gift.milestones))
+        # Re-fetch with eagerly loaded milestones and media_messages to satisfy Pydantic serialization
+        refresh_query = select(Gift).where(Gift.id == new_gift.id).options(selectinload(Gift.milestones), selectinload(Gift.media_messages))
         refresh_result = await db.execute(refresh_query)
         new_gift_loaded = refresh_result.scalar_one()
         
@@ -114,9 +114,9 @@ class GiftService:
     async def get_gifts_by_user(db: AsyncSession, user_id: str, is_grandparent: bool = True) -> List[Gift]:
         from sqlalchemy.orm import selectinload
         if is_grandparent:
-            query = select(Gift).where(Gift.grandparent_id == uuid.UUID(user_id)).options(selectinload(Gift.milestones))
+            query = select(Gift).where(Gift.grandparent_id == uuid.UUID(user_id)).options(selectinload(Gift.milestones), selectinload(Gift.media_messages))
         else:
-            query = select(Gift).where(Gift.grandchild_id == uuid.UUID(user_id)).options(selectinload(Gift.milestones))
+            query = select(Gift).where(Gift.grandchild_id == uuid.UUID(user_id)).options(selectinload(Gift.milestones), selectinload(Gift.media_messages))
         
         result = await db.execute(query)
         return result.scalars().all()

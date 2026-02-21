@@ -23,12 +23,23 @@ const GrandchildDashboard: React.FC = () => {
 
   const activeGift = selectedGiftId ? gifts?.find((g) => g.id === selectedGiftId) : null;
 
+  const hasMessageOrMedia = activeGift?.message || (activeGift?.media_messages && activeGift.media_messages.length > 0);
+
   useEffect(() => {
-    if (activeGift?.status === "Completed" && activeGift?.message && activeGift.id !== completedGiftId) {
+    if (activeGift?.status === "Completed" && hasMessageOrMedia && activeGift.id !== completedGiftId) {
       setShowCompletionModal(true);
       setCompletedGiftId(activeGift.id);
     }
-  }, [activeGift?.status, activeGift?.message, activeGift?.id, completedGiftId]);
+  }, [activeGift?.status, hasMessageOrMedia, activeGift?.id, completedGiftId]);
+
+  const renderMedia = (media?: any) => {
+    if (!media) return null;
+    const mediaUrl = `http://localhost:8000/${media.file_path.replace(/\\/g, '/')}`;
+    if (media.type === 'photo') return <img src={mediaUrl} alt="Grandparent Attachment" className="w-full rounded-xl mt-4 max-h-64 object-cover border border-border/50" />;
+    if (media.type === 'video') return <video controls src={mediaUrl} className="w-full rounded-xl mt-4 max-h-64 object-cover border border-border/50" />;
+    if (media.type === 'audio') return <audio controls src={mediaUrl} className="w-full mt-4" />;
+    return null;
+  };
 
   const handleGpaCheck = (threshold: number) => {
     const gpa = parseFloat(gpaValue);
@@ -111,14 +122,17 @@ const GrandchildDashboard: React.FC = () => {
             {activeGift ? (
               <>
                 {/* Grandparent Message */}
-                {activeGift.status === "Completed" && activeGift.message && (
+                {activeGift.status === "Completed" && hasMessageOrMedia && (
                   <div className="bg-primary/5 rounded-3xl border border-primary/20 p-6 shadow-soft text-left animate-in fade-in">
                     <h3 className="text-sm font-bold text-primary uppercase tracking-widest flex items-center gap-2 mb-3">
                       <MessageSquare size={16} /> A Note from Your Grandparent
                     </h3>
-                    <p className="text-xl italic text-foreground leading-relaxed">
-                      "{activeGift.message}"
-                    </p>
+                    {activeGift.message && (
+                      <p className="text-xl italic text-foreground leading-relaxed">
+                        "{activeGift.message}"
+                      </p>
+                    )}
+                    {renderMedia(activeGift.media_messages?.[0])}
                   </div>
                 )}
 
@@ -236,7 +250,7 @@ const GrandchildDashboard: React.FC = () => {
         </Link>
       </div>
       {/* Completion Modal Pop-up */}
-      {showCompletionModal && activeGift?.message && (
+      {showCompletionModal && hasMessageOrMedia && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-card w-full max-w-lg rounded-3xl border-2 border-primary/20 shadow-2xl p-8 text-center animate-in zoom-in-95">
             <div className="mx-auto bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mb-6">
@@ -253,9 +267,12 @@ const GrandchildDashboard: React.FC = () => {
               <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
                 <MessageSquare size={16} /> A Note from your Grandparent
               </h3>
-              <p className="text-2xl font-medium text-foreground italic leading-relaxed">
-                "{activeGift.message}"
-              </p>
+              {activeGift.message && (
+                <p className="text-2xl font-medium text-foreground italic leading-relaxed">
+                  "{activeGift.message}"
+                </p>
+              )}
+              {renderMedia(activeGift.media_messages?.[0])}
             </div>
 
             <Button

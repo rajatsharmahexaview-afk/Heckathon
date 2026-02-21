@@ -24,6 +24,7 @@ const VoiceGiftCreation: React.FC = () => {
     corpus: 0,
     currency: "USD" as const,
     releaseCondition: "",
+    message: "",
   });
 
   const handleToggleListening = async () => {
@@ -40,6 +41,7 @@ const VoiceGiftCreation: React.FC = () => {
             corpus: Number(finalGift.corpus) || 1000,
             currency: finalGift.currency || "USD",
             releaseCondition: finalGift.rule_detail?.value || finalGift.rule_detail?.type || "Graduation",
+            message: finalGift.message || "",
           });
           setVoiceState("parsed");
         } else {
@@ -59,9 +61,11 @@ const VoiceGiftCreation: React.FC = () => {
     try {
       const response = await api.post(`/gifts?grandparent_id=${currentUser!.id}`, {
         grandchild_id: parsedGift.grandchildId,
+        grandchild_name: parsedGift.grandchildName,
         corpus: parsedGift.corpus,
-        currency: parsedGift.currency,
-        risk_profile: parsedGift.riskProfile,
+        currency: parsedGift.currency.toUpperCase(),
+        message: parsedGift.message || undefined,
+        risk_profile: parsedGift.riskProfile.charAt(0).toUpperCase() + parsedGift.riskProfile.slice(1).toLowerCase(),
         rule_type: "Milestone",
         milestones: [
           { type: parsedGift.releaseCondition, percentage: 100 }
@@ -161,9 +165,9 @@ const VoiceGiftCreation: React.FC = () => {
                 <Button size="xl" variant="warm" className="flex-1 text-xl py-8 rounded-2xl" onClick={handleConfirm}>
                   <Check className="mr-2 h-6 w-6" /> Everything is Correct
                 </Button>
-                <Button size="xl" variant="outline" className="text-xl py-8 rounded-2xl" onClick={() => navigate("/grandparent/create-gift")}>
+                {/* <Button size="xl" variant="outline" className="text-xl py-8 rounded-2xl" onClick={() => navigate("/grandparent/create-gift")}>
                   <Edit className="mr-2 h-6 w-6" /> Edit Manually
-                </Button>
+                </Button> */}
               </div>
             </div>
           )}
