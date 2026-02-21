@@ -40,12 +40,16 @@ class TrusteeService:
         from app.shared.gifts.schemas import UserRole
         
         # Notify grandchild
+        gc_message = f"Congratulations! Your milestone '{milestone.type}' has been approved and funds disbursed."
+        if gift.message:
+            gc_message += f"\n\nMessage from Grandparent:\n\"{gift.message}\""
+            
         await NotificationService.create_notification(
             db,
             str(gift.grandchild_id),
             UserRole.grandchild,
             "milestone_approved",
-            f"Congratulations! Your milestone '{milestone.type}' has been approved and funds disbursed."
+            gc_message
         )
 
         # Notify grandparent

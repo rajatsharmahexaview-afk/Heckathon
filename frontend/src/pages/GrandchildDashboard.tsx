@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useGifts } from "@/hooks/useGifts";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Gift, TrendingUp, Clock, Upload, AlertTriangle, BookOpen, CheckCircle2, Loader2 } from "lucide-react";
+import { Gift, TrendingUp, Clock, Upload, AlertTriangle, BookOpen, CheckCircle2, Loader2, MessageSquare } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { MOCK_GROWTH_DATA } from "@/data/mockData";
 import { Link } from "react-router-dom";
@@ -18,7 +18,17 @@ const GrandchildDashboard: React.FC = () => {
   const [gpaValue, setGpaValue] = useState("");
   const [gpaResult, setGpaResult] = useState<"pass" | "fail" | null>(null);
 
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completedGiftId, setCompletedGiftId] = useState<string | null>(null);
+
   const activeGift = selectedGiftId ? gifts?.find((g) => g.id === selectedGiftId) : null;
+
+  useEffect(() => {
+    if (activeGift?.status === "Completed" && activeGift?.message && activeGift.id !== completedGiftId) {
+      setShowCompletionModal(true);
+      setCompletedGiftId(activeGift.id);
+    }
+  }, [activeGift?.status, activeGift?.message, activeGift?.id, completedGiftId]);
 
   const handleGpaCheck = (threshold: number) => {
     const gpa = parseFloat(gpaValue);
@@ -100,6 +110,18 @@ const GrandchildDashboard: React.FC = () => {
           <div className="space-y-6">
             {activeGift ? (
               <>
+                {/* Grandparent Message */}
+                {activeGift.status === "Completed" && activeGift.message && (
+                  <div className="bg-primary/5 rounded-3xl border border-primary/20 p-6 shadow-soft text-left animate-in fade-in">
+                    <h3 className="text-sm font-bold text-primary uppercase tracking-widest flex items-center gap-2 mb-3">
+                      <MessageSquare size={16} /> A Note from Your Grandparent
+                    </h3>
+                    <p className="text-xl italic text-foreground leading-relaxed">
+                      "{activeGift.message}"
+                    </p>
+                  </div>
+                )}
+
                 {/* Growth Visualization */}
                 <div className="bg-card rounded-3xl border p-6 shadow-soft">
                   <h3 className="text-xl font-extrabold mb-6 flex items-center gap-2">
@@ -213,6 +235,40 @@ const GrandchildDashboard: React.FC = () => {
           </Button>
         </Link>
       </div>
+      {/* Completion Modal Pop-up */}
+      {showCompletionModal && activeGift?.message && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-card w-full max-w-lg rounded-3xl border-2 border-primary/20 shadow-2xl p-8 text-center animate-in zoom-in-95">
+            <div className="mx-auto bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mb-6">
+              <Gift size={40} className="text-primary animate-bounce" />
+            </div>
+            <h2 className="text-3xl font-black mb-2 flex items-center justify-center gap-2">
+              <CheckCircle2 className="text-success" /> Milestone Reached!
+            </h2>
+            <p className="text-xl text-muted-foreground mb-8">
+              Your gift conditions have been completely fulfilled.
+            </p>
+
+            <div className="bg-secondary/30 rounded-2xl p-6 mb-8 text-left border border-border">
+              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                <MessageSquare size={16} /> A Note from your Grandparent
+              </h3>
+              <p className="text-2xl font-medium text-foreground italic leading-relaxed">
+                "{activeGift.message}"
+              </p>
+            </div>
+
+            <Button
+              size="xl"
+              variant="warm"
+              className="w-full text-xl h-16 rounded-2xl font-bold"
+              onClick={() => setShowCompletionModal(false)}
+            >
+              Continue to Dashboard
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

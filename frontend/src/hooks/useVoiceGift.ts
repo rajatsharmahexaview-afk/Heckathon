@@ -8,6 +8,7 @@ export const useVoiceGift = () => {
     const [error, setError] = useState<string | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
+    const sessionIdRef = useRef<string>(crypto.randomUUID());
 
     const startListening = async () => {
         try {
@@ -31,7 +32,7 @@ export const useVoiceGift = () => {
         }
     };
 
-    const stopListening = async (): Promise<VoiceParseDetails | null> => {
+    const stopListening = async (): Promise<any> => {
         if (mediaRecorderRef.current && isListening) {
             return new Promise((resolve) => {
                 mediaRecorderRef.current!.onstop = async () => {
@@ -48,13 +49,14 @@ export const useVoiceGift = () => {
         return null;
     };
 
-    const parseAudio = async (blob: Blob): Promise<VoiceParseDetails | null> => {
+    const parseAudio = async (blob: Blob): Promise<any> => {
         setIsParsing(true);
         const formData = new FormData();
         formData.append('audio', blob, 'recording.wav');
+        formData.append('session_id', sessionIdRef.current);
 
         try {
-            const response = await api.post<VoiceParseDetails>('/voice/parse-gift', formData, {
+            const response = await api.post<any>('/voice/chat', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -69,10 +71,13 @@ export const useVoiceGift = () => {
         }
     };
 
-    const parseText = async (text: string): Promise<VoiceParseDetails | null> => {
+    const parseText = async (text: string): Promise<any> => {
         setIsParsing(true);
         try {
-            const response = await api.post<VoiceParseDetails>(`/voice/parse-gift?text=${encodeURIComponent(text)}`);
+            const formData = new FormData();
+            formData.append('text', text);
+            formData.append('session_id', sessionIdRef.current);
+            const response = await api.post<any>(`/voice/chat`, formData);
             setIsParsing(false);
             return response.data;
         } catch (err) {

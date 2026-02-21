@@ -54,6 +54,7 @@ export interface Gift {
   grandchild_name?: string;
   corpus: number;
   currency: Currency;
+  message?: string;
   status: GiftStatus;
   risk_profile: RiskProfile;
   rule_type: RuleType;

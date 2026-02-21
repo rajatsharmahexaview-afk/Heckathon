@@ -79,6 +79,7 @@ class MilestoneSchema(MilestoneBase):
 class GiftBase(BaseModel):
     grandchild_id: uuid.UUID
     grandchild_name: Optional[str] = None
+    message: Optional[str] = None
     corpus: Decimal
     currency: Currency = Currency.USD
     risk_profile: RiskProfile = RiskProfile.Balanced

@@ -53,6 +53,7 @@ const GiftCreation: React.FC = () => {
         grandchild_name: selectedChildObj?.name || "",
         corpus: parseFloat(corpus),
         currency,
+        message,
         risk_profile: riskProfile,
         rule_type: ruleType,
         fallback_ngo_id: fallback === "redirect_ngo" ? ngoId : undefined,

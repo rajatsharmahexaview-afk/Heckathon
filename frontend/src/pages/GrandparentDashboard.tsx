@@ -8,6 +8,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Gift, TrendingUp, Wallet, PieChart, Plus, Mic, Globe, Loader2, Info, Trash2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { FX_RATE_USD_TO_INR } from "@/config/constants";
 import { toast } from "sonner";
 
 const GrandparentDashboard: React.FC = () => {
@@ -26,7 +27,14 @@ const GrandparentDashboard: React.FC = () => {
   }
 
   const activeGiftsCount = gifts?.filter(g => g.status === 'Active').length || 0;
-  const totalCorpus = gifts?.reduce((sum, g) => sum + Number(g.corpus), 0) || 0;
+
+  const totalCorpus = gifts?.reduce((sum, g) => {
+    let amount = Number(g.corpus);
+    if (g.currency !== currency) {
+      amount = currency === 'INR' ? amount * FX_RATE_USD_TO_INR : amount / FX_RATE_USD_TO_INR;
+    }
+    return sum + amount;
+  }, 0) || 0;
 
   const validGrandchildIds = new Set(
     grandchildren.filter(gc => gc.linkedGrandparentId === currentUser?.id).map(gc => gc.id)
@@ -133,10 +141,12 @@ const GrandparentDashboard: React.FC = () => {
               </div>
             ) : (
               gifts.map((gift) => (
-                <button
+                <div
                   key={gift.id}
                   onClick={() => setSelectedGiftId(gift.id)}
-                  className={`group relative overflow-hidden bg-card rounded-3xl border-2 p-6 transition-all hover:shadow-xl text-left ${selectedGiftId === gift.id ? "border-primary ring-4 ring-primary/5" : "border-border hover:border-primary/30"
+                  role="button"
+                  tabIndex={0}
+                  className={`group relative overflow-hidden bg-card rounded-3xl border-2 p-6 transition-all hover:shadow-xl text-left cursor-pointer ${selectedGiftId === gift.id ? "border-primary ring-4 ring-primary/5" : "border-border hover:border-primary/30"
                     }`}
                 >
                   <div className="flex justify-between items-start">
@@ -172,7 +182,7 @@ const GrandparentDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </button>
+                </div>
               ))
             )}
           </div>

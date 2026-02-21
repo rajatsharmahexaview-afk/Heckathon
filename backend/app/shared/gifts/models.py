@@ -21,6 +21,7 @@ class Gift(Base):
     grandparent_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     grandchild_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     grandchild_name = Column(String, nullable=True) # Added grandchild_name
+    message = Column(Text, nullable=True)
     corpus = Column(Numeric(15, 2), nullable=False)
     currency = Column(Enum("USD", "INR", name="currencies"), default="USD")
     status = Column(Enum("Draft", "Active", "Under Review", "Approved", "Rejected", "Redirected", "Completed", name="gift_statuses"), default="Draft")

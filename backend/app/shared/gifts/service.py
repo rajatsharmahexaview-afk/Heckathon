@@ -39,6 +39,7 @@ class GiftService:
             grandchild_name=gift_data.grandchild_name,
             corpus=gift_data.corpus,
             currency=gift_data.currency,
+            message=gift_data.message,
             status=GiftStatus.Active,
             risk_profile=gift_data.risk_profile,
             rule_type=gift_data.rule_type,
