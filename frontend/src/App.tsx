@@ -12,6 +12,7 @@ import TrusteeDashboard from "./pages/TrusteeDashboard";
 import GiftCreation from "./pages/GiftCreation";
 import VoiceGiftCreation from "./pages/VoiceGiftCreation";
 import EducationalContent from "./pages/EducationalContent";
+import FamilyCoverage from "./pages/FamilyCoverage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const ProtectedRoutes = () => {
         <Route path="/grandparent" element={<GrandparentDashboard />} />
         <Route path="/grandparent/create-gift" element={<GiftCreation />} />
         <Route path="/grandparent/voice-gift" element={<VoiceGiftCreation />} />
+        <Route path="/grandparent/family" element={<FamilyCoverage />} />
         <Route path="/grandchild" element={<GrandchildDashboard />} />
         <Route path="/trustee" element={<TrusteeDashboard />} />
         <Route path="/educational" element={<EducationalContent />} />

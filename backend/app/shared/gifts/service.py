@@ -39,7 +39,7 @@ class GiftService:
             grandchild_name=gift_data.grandchild_name,
             corpus=gift_data.corpus,
             currency=gift_data.currency,
-            status=GiftStatus.Draft,
+            status=GiftStatus.Active,
             risk_profile=gift_data.risk_profile,
             rule_type=gift_data.rule_type,
             fallback_ngo_id=gift_data.fallback_ngo_id
@@ -66,15 +66,25 @@ class GiftService:
         refresh_result = await db.execute(refresh_query)
         new_gift_loaded = refresh_result.scalar_one()
         
-        # Trigger notification
+        # Trigger notification for Grandparent
         from app.shared.notifications.service import NotificationService
         from app.shared.gifts.schemas import UserRole
+        
         await NotificationService.create_notification(
             db,
             str(new_gift.grandparent_id),
             UserRole.grandparent,
             "gift_created",
-            f"Your gift for Arjun has been created and is now {new_gift.status}."
+            f"Your gift for {new_gift.grandchild_name or 'your grandchild'} has been created and is now {new_gift.status}."
+        )
+        
+        # Trigger notification for Grandchild
+        await NotificationService.create_notification(
+            db,
+            str(new_gift.grandchild_id),
+            UserRole.grandchild,
+            "gift_received",
+            f"You have received a new gift! Log in to view the milestones."
         )
         
         return new_gift_loaded
@@ -109,3 +119,16 @@ class GiftService:
         
         result = await db.execute(query)
         return result.scalars().all()
+
+    @staticmethod
+    async def delete_gift(db: AsyncSession, gift_id: str):
+        from sqlalchemy.orm import selectinload
+        result = await db.execute(select(Gift).where(Gift.id == uuid.UUID(gift_id)))
+        gift = result.scalar_one_or_none()
+        
+        if not gift:
+            raise ValueError("Gift not found")
+        
+        await db.delete(gift)
+        await db.commit()
+

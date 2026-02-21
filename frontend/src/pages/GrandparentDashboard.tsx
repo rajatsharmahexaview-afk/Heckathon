@@ -6,13 +6,13 @@ import { useSimulation } from "@/hooks/useSimulation";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Gift, TrendingUp, Wallet, PieChart, Plus, Mic, Globe, Loader2, Info } from "lucide-react";
-import { XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { Gift, TrendingUp, Wallet, PieChart, Plus, Mic, Globe, Loader2, Info, Trash2 } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 
 const GrandparentDashboard: React.FC = () => {
-  const { currentUser, toggleCurrency, currency } = useApp();
-  const { gifts, isLoading: giftsLoading } = useGifts(currentUser?.id, 'grandparent');
+  const { currentUser, toggleCurrency, currency, grandchildren } = useApp();
+  const { gifts, isLoading: giftsLoading, deleteGift } = useGifts(currentUser?.id, 'grandparent');
   const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
   const { projection, isLoading: simLoading } = useSimulation(selectedGiftId || (gifts && gifts.length > 0 ? gifts[0].id : undefined));
 
@@ -27,6 +27,32 @@ const GrandparentDashboard: React.FC = () => {
 
   const activeGiftsCount = gifts?.filter(g => g.status === 'Active').length || 0;
   const totalCorpus = gifts?.reduce((sum, g) => sum + Number(g.corpus), 0) || 0;
+
+  const validGrandchildIds = new Set(
+    grandchildren.filter(gc => gc.linkedGrandparentId === currentUser?.id).map(gc => gc.id)
+  );
+
+  const totalGrandchildrenCount = validGrandchildIds.size;
+  const distinctGrandchildrenReceiving = new Set(
+    gifts?.filter(g => g.status === 'Active' && validGrandchildIds.has(g.grandchild_id))
+      .map(g => g.grandchild_id)
+  ).size;
+  const familyCoverageText = `${distinctGrandchildrenReceiving}/${totalGrandchildrenCount}`;
+
+  const handleDeleteGift = async (e: React.MouseEvent, giftId: string) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this gift?")) {
+      try {
+        await deleteGift(giftId);
+        toast.success("Gift deleted successfully.");
+        if (selectedGiftId === giftId) {
+          setSelectedGiftId(null);
+        }
+      } catch (err) {
+        toast.error("Failed to delete gift.");
+      }
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -61,13 +87,13 @@ const GrandparentDashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <PortfolioCard
           icon={<div className="p-3 bg-primary/10 rounded-2xl"><Wallet className="text-primary" size={24} /></div>}
-          label="Estimated Net Value"
+          label="Gifts Value"
           amount={totalCorpus}
           currency="USD"
         />
         <PortfolioCard
           icon={<div className="p-3 bg-accent/10 rounded-2xl"><Gift className="text-accent" size={24} /></div>}
-          label="Active Protections"
+          label="Active Gifts"
           count={activeGiftsCount}
         />
         <PortfolioCard
@@ -75,11 +101,13 @@ const GrandparentDashboard: React.FC = () => {
           label="Projected Yield"
           percentage="+9.2%"
         />
-        <PortfolioCard
-          icon={<div className="p-3 bg-blue-100 rounded-2xl"><PieChart className="text-blue-600" size={24} /></div>}
-          label="Family Coverage"
-          count={gifts?.length || 0}
-        />
+        <Link to="/grandparent/family" className="block w-full">
+          <PortfolioCard
+            icon={<div className="p-3 bg-blue-100 rounded-2xl"><PieChart className="text-blue-600" size={24} /></div>}
+            label="Family Coverage"
+            text={familyCoverageText}
+          />
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -128,11 +156,20 @@ const GrandparentDashboard: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-black text-primary">
+                    <div className="text-right flex flex-col items-end">
+                      <p className="text-2xl font-black text-primary mb-2">
                         <CurrencyDisplay amount={Number(gift.corpus)} originalCurrency={gift.currency} />
                       </p>
-                      <StatusBadge status={gift.status} />
+                      <div className="flex items-center gap-3">
+                        <StatusBadge status={gift.status} />
+                        <button
+                          onClick={(e) => handleDeleteGift(e, gift.id)}
+                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+                          title="Delete Gift"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -212,7 +249,8 @@ const PortfolioCard: React.FC<{
   currency?: "USD" | "INR";
   count?: number;
   percentage?: string;
-}> = ({ icon, label, amount, currency: cur, count, percentage }) => (
+  text?: string;
+}> = ({ icon, label, amount, currency: cur, count, percentage, text }) => (
   <div className="bg-card rounded-3xl border-2 p-6 shadow-soft hover:border-primary/20 transition-all">
     <div className="flex items-center gap-4 mb-4">
       {icon}
@@ -224,6 +262,8 @@ const PortfolioCard: React.FC<{
       </p>
     ) : percentage ? (
       <p className="text-3xl font-black text-success">{percentage}</p>
+    ) : text !== undefined ? (
+      <p className="text-3xl font-black text-foreground">{text}</p>
     ) : (
       <p className="text-3xl font-black text-foreground">{count}</p>
     )}

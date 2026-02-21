@@ -39,7 +39,7 @@ app.include_router(users_router)
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],
+    allow_origins=["*"],  # Allows any origin, like localhost or local network IPs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

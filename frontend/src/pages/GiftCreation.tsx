@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/contexts/AppContext";
-import { DEMO_GRANDCHILDREN } from "@/data/mockData";
 import { MILESTONES, BEHAVIOR_CONDITIONS, RISK_PROFILES, DEMO_NGOS } from "@/config/constants";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Check, Gift as GiftIcon, User, Settings, BarChart3, MessageSquare, Loader2 } from "lucide-react";
@@ -18,7 +17,7 @@ const STEPS = [
 ];
 
 const GiftCreation: React.FC = () => {
-  const { currentUser } = useApp();
+  const { currentUser, grandchildren: allGrandchildren } = useApp();
   const { createGift, isCreating } = useGifts(currentUser?.id, "grandparent");
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -37,7 +36,7 @@ const GiftCreation: React.FC = () => {
   const [ngoId, setNgoId] = useState(DEMO_NGOS[0].id);
   const [message, setMessage] = useState("");
 
-  const grandchildren = DEMO_GRANDCHILDREN.filter((gc) => gc.linkedGrandparentId === currentUser?.id);
+  const grandchildren = allGrandchildren.filter((gc) => gc.linkedGrandparentId === currentUser?.id);
   const selectedChildObj = grandchildren.find((gc) => gc.id === selectedChild);
 
   const canProceed = () => {
@@ -181,16 +180,6 @@ const GiftCreation: React.FC = () => {
                   )}
                 </>
               )}
-              {(ruleType === "Milestone" || ruleType === "Behavior") && (
-                <div>
-                  <label className="text-base font-semibold block mb-2">If condition not met</label>
-                  <select value={fallback} onChange={(e) => setFallback(e.target.value as "push_next" | "redirect_ngo")}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-base">
-                    <option value="push_next">Push to next milestone</option>
-                    <option value="redirect_ngo">Redirect to NGO</option>
-                  </select>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -232,12 +221,36 @@ const GiftCreation: React.FC = () => {
                 </select>
               </div>
             </div>
-            <div>
-              <label className="text-base font-semibold block mb-2">Fallback NGO</label>
-              <select value={ngoId} onChange={(e) => setNgoId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-base">
-                {DEMO_NGOS.map((ngo) => <option key={ngo.id} value={ngo.id}>{ngo.name}</option>)}
-              </select>
+            <div className="pt-4 border-t border-border mt-4 space-y-4">
+              <label className="text-base font-semibold block leading-snug">
+                Do you want to donate this gift to a charity of your liking in case the grandchild refuses the gift or is not able to achieve the milestone?
+              </label>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setFallback("redirect_ngo")}
+                  className={`flex-1 py-3 rounded-xl border-2 font-bold transition-all ${fallback === "redirect_ngo" ? "border-primary bg-primary/5 text-primary" : "border-border hover:border-primary/30"
+                    }`}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setFallback("push_next")}
+                  className={`flex-1 py-3 rounded-xl border-2 font-bold transition-all ${fallback === "push_next" ? "border-primary bg-primary/5 text-primary" : "border-border hover:border-primary/30"
+                    }`}
+                >
+                  No
+                </button>
+              </div>
+
+              {fallback === "redirect_ngo" && (
+                <div className="animate-in fade-in slide-in-from-top-2 pt-2">
+                  <label className="text-base font-semibold block mb-2">Select an NGO of your choice</label>
+                  <select value={ngoId} onChange={(e) => setNgoId(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-base">
+                    {DEMO_NGOS.map((ngo) => <option key={ngo.id} value={ngo.id}>{ngo.name}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         )}

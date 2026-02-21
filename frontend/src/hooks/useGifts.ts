@@ -50,6 +50,16 @@ export const useGifts = (userId?: string, role?: 'grandparent' | 'grandchild' | 
         },
     });
 
+    // Mutation to delete a gift
+    const deleteGiftMutation = useMutation({
+        mutationFn: async (giftId: string) => {
+            await api.delete(`/gifts/${giftId}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['gifts'] });
+        },
+    });
+
     return {
         gifts,
         isLoading,
@@ -57,8 +67,10 @@ export const useGifts = (userId?: string, role?: 'grandparent' | 'grandchild' | 
         createGift: createGiftMutation.mutateAsync,
         updateStatus: updateStatusMutation.mutateAsync,
         submitMilestone: submitMilestoneMutation.mutateAsync,
+        deleteGift: deleteGiftMutation.mutateAsync,
         isCreating: createGiftMutation.isPending,
         isUpdating: updateStatusMutation.isPending,
         isSubmitting: submitMilestoneMutation.isPending,
+        isDeleting: deleteGiftMutation.isPending,
     };
 };
