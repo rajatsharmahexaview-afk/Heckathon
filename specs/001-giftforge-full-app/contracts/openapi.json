@@ -1,0 +1,100 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "GiftForge API",
+        "version": "2.0.0"
+    },
+    "paths": {
+        "/gifts": {
+            "post": {
+                "tags": [
+                    "Gifts"
+                ],
+                "summary": "Create a new gift",
+                "responses": {
+                    "201": {
+                        "description": "Gift created"
+                    }
+                }
+            }
+        },
+        "/grandparent/dashboard/{id}": {
+            "get": {
+                "tags": [
+                    "Grandparent"
+                ],
+                "summary": "Get portfolio data for grandparent",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/grandchild/dashboard/{id}": {
+            "get": {
+                "tags": [
+                    "Grandchild"
+                ],
+                "summary": "Get gift status for grandchild",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/voice/parse-gift": {
+            "post": {
+                "tags": [
+                    "Voice"
+                ],
+                "summary": "Parse audio/text to structured gift",
+                "responses": {
+                    "200": {
+                        "description": "Parsed gift model"
+                    }
+                }
+            }
+        },
+        "/notifications/{user_id}": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get notification feed for user",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/media/upload": {
+            "post": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Upload multimedia attachment",
+                "responses": {
+                    "201": {
+                        "description": "File uploaded"
+                    }
+                }
+            }
+        },
+        "/trustee/approve-milestone": {
+            "post": {
+                "tags": [
+                    "Trustee"
+                ],
+                "summary": "Auto-approve or manual approve milestone",
+                "responses": {
+                    "200": {
+                        "description": "Approved"
+                    }
+                }
+            }
+        }
+    }
+}
